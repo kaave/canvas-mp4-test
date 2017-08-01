@@ -11,6 +11,21 @@ function getAndInitCanvasSize(canvasElementSelector) {
   return { element, width, height };
 }
 
+// 参考: https://www.ipentec.com/document/document.aspx?page=html-canvas-create-mosic-image
+function createMosaic({ context, imageData, width, height, mosaicSizePx }) {
+  for (let y = 0; y < height; y += mosaicSizePx) {
+    for (let x = 0; x < width; x += mosaicSizePx) {
+      const dataBaseIndex = ((y * width) + x) * 4;
+      const r = imageData.data[dataBaseIndex];
+      const g = imageData.data[dataBaseIndex + 1];
+      const b = imageData.data[dataBaseIndex + 2];
+
+      context.fillStyle = `rgb(${r},${g},${b})`;
+      context.fillRect(x, y, x + mosaicSizePx, y + mosaicSizePx);
+    }
+  }
+}
+
 class Main {
   constructor() {
     this.onDOMContentLoaded = this.onDOMContentLoaded.bind(this);
@@ -23,6 +38,7 @@ class Main {
     this.initQuartet();
     this.initCenterReverse();
     this.initMirror();
+    this.initMosaic();
   }
 
   init10Frames() {
@@ -63,6 +79,27 @@ class Main {
     setInterval(() => {
       this.mirrorContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
     }, 1000 / 30);
+  }
+
+  initMosaic() {
+    const { element, width, height } = getAndInitCanvasSize('.mosaic');
+    this.mosaicContext = element.getContext('2d');
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = width;
+    tmpCanvas.height = height;
+    const tmpContext = tmpCanvas.getContext('2d');
+    setInterval(() => {
+      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      const imageData = tmpContext.getImageData(0, 0, width, height);
+      createMosaic({
+        imageData,
+        width,
+        height,
+        context: tmpContext,
+        mosaicSizePx: 12
+      });
+      this.mosaicContext.drawImage(tmpCanvas, 0, 0);
+    }, 1000 / 10);
   }
 
   initRandomYellowBox() {

@@ -41,6 +41,9 @@ class Main {
     this.initMirror();
     this.initSequence();
     this.initMosaic();
+    this.initGrayScale();
+    this.initShock();
+    this.initRGB();
   }
 
   init10Frames() {
@@ -135,15 +138,104 @@ class Main {
     }, 1000 / 10);
   }
 
-  initRandomYellowBox() {
+  initGrayScale() {
+    const { element, width, height } = getAndInitCanvasSize('.gray');
+    this.grayContext = element.getContext('2d');
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = width;
+    tmpCanvas.height = height;
+    const tmpContext = tmpCanvas.getContext('2d');
     setInterval(() => {
-      this.tenFramesContext.shadowBlur = 15;//  shadow Blur
-      this.tenFramesContext.shadowColor = '#009933'; // shadow color
-      this.tenFramesContext.drawImage(this.video, 0, 0);
-      this.tenFramesContext.fillStyle = 'rgba(189, 254, 34, 0.3)'; // fill color
-      this.tenFramesContext.fillRect(70, 20, 400, 200); // rectangle
+      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      const imageData = tmpContext.getImageData(0, 0, width, height);
+      const { data } = imageData;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const brightness = (0.34 * data[i]) + (0.5 * data[i + 1]) + (0.16 * data[i + 2]);
+        data[i] = brightness;
+        data[i + 1] = brightness;
+        data[i + 2] = brightness;
+      }
+      this.grayContext.putImageData(imageData, 0, 0);
     }, 1000 / 10);
   }
+
+  initShock() {
+    const { element, width, height } = getAndInitCanvasSize('.shock');
+    this.shockContext = element.getContext('2d');
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = width;
+    tmpCanvas.height = height;
+    const tmpContext = tmpCanvas.getContext('2d');
+    setInterval(() => {
+      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      const imageData = tmpContext.getImageData(0, 0, width, height);
+      const { data } = imageData;
+
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = 255 - data[i];
+        data[i + 1] = 255 - data[i + 1];
+        data[i + 2] = 255 - data[i + 2];
+      }
+      this.shockContext.putImageData(imageData, 0, 0);
+    }, 1000 / 10);
+  }
+
+  initRGB() {
+    const { element, width, height } = getAndInitCanvasSize('.rgb');
+    this.rgbContext = element.getContext('2d');
+    const sourceCenterWidthPx = sourceWidthPx / 2;
+    const sourceCenterHeightPx = sourceHeightPx / 2;
+    const centerWidth = width / 2;
+    const centerHeight = height / 2;
+
+    setInterval(() => {
+      const canvases = [];
+      for (let i = 0; i < 4; i += 1) {
+        const canvas = document.createElement('canvas');
+        canvas.width = centerWidth;
+        canvas.height = centerHeight;
+        const context = canvas.getContext('2d');
+        canvases.push({ canvas, context });
+      }
+
+      canvases[0].context.drawImage(this.video, 0, 0, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
+      canvases[1].context.drawImage(this.video, sourceCenterWidthPx, 0, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
+      canvases[2].context.drawImage(this.video, 0, sourceCenterHeightPx, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
+      canvases[3].context.drawImage(this.video, sourceCenterWidthPx, sourceCenterHeightPx, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
+
+      canvases[0].imageData = canvases[0].context.getImageData(0, 0, centerWidth, centerHeight);
+      canvases[1].imageData = canvases[1].context.getImageData(0, 0, centerWidth, centerHeight);
+      canvases[2].imageData = canvases[2].context.getImageData(0, 0, centerWidth, centerHeight);
+
+      const data0 = canvases[0].imageData.data;
+      for (let i = 0; i < data0.length; i += 4) {
+        data0[i] = 0;
+      }
+      this.rgbContext.putImageData(canvases[0].imageData, 0, 0);
+      const data1 = canvases[1].imageData.data;
+      for (let i = 0; i < data1.length; i += 4) {
+        data1[i + 1] = 0;
+      }
+      this.rgbContext.putImageData(canvases[1].imageData, centerWidth, 0);
+      const data2 = canvases[2].imageData.data;
+      for (let i = 0; i < data2.length; i += 4) {
+        data2[i + 2] = 0;
+      }
+      this.rgbContext.putImageData(canvases[2].imageData, 0, centerHeight);
+      this.rgbContext.drawImage(canvases[3].canvas, centerWidth, centerHeight, centerWidth, centerHeight);
+    }, 1000 / 10);
+  }
+
+  // initRandomYellowBox() {
+  //   setInterval(() => {
+  //     this.tenFramesContext.shadowBlur = 15;//  shadow Blur
+  //     this.tenFramesContext.shadowColor = '#009933'; // shadow color
+  //     this.tenFramesContext.drawImage(this.video, 0, 0);
+  //     this.tenFramesContext.fillStyle = 'rgba(189, 254, 34, 0.3)'; // fill color
+  //     this.tenFramesContext.fillRect(70, 20, 400, 200); // rectangle
+  //   }, 1000 / 10);
+  // }
 }
 
 const main = new Main();

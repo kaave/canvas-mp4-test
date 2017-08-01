@@ -1,7 +1,7 @@
 export default {
   dest: {
     dev: '.tmp',
-    build: 'build',
+    build: 'docs',
   },
 
   copy: {
@@ -10,15 +10,15 @@ export default {
   },
 
   rev: {
-    src: 'build/**/*.{js,css,png,gif,jpg,jpeg,svg,eot,ttf,woff,ico}',
-    dest: 'build',
+    src: 'docs/**/*.{js,css,png,gif,jpg,jpeg,svg,eot,ttf,woff,ico}',
+    dest: 'docs',
     manifestFileName: 'manifest.json',
-    isEnable: true
+    isEnable: false
   },
 
   revReplace: {
-    src: ['build/index.html', 'build/**/*.{js,css,html}'],
-    dest: 'build',
+    src: ['docs/index.html', 'docs/**/*.{js,css,html}'],
+    dest: 'docs',
   },
 
   view: {

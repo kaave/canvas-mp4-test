@@ -16,6 +16,7 @@ function createMosaic({ context, imageData, width, height, mosaicSizePx }) {
   for (let y = 0; y < height; y += mosaicSizePx) {
     for (let x = 0; x < width; x += mosaicSizePx) {
       const dataBaseIndex = ((y * width) + x) * 4;
+      // imageData.dataには1px毎のデータがrgba順の10進数で入っている
       const r = imageData.data[dataBaseIndex];
       const g = imageData.data[dataBaseIndex + 1];
       const b = imageData.data[dataBaseIndex + 2];
@@ -38,6 +39,7 @@ class Main {
     this.initQuartet();
     this.initCenterReverse();
     this.initMirror();
+    this.initSequence();
     this.initMosaic();
   }
 
@@ -81,6 +83,37 @@ class Main {
     }, 1000 / 30);
   }
 
+  initSequence() {
+    const sequenceCount = 9;
+    this.lastViewList = [];
+    const { element, width, height } = getAndInitCanvasSize('.sequence');
+    this.sequenceContext = element.getContext('2d');
+    const thresholdWidth = width / 3;
+    const thresholdHeight = height / 3;
+    setInterval(() => {
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = width;
+      tmpCanvas.height = height;
+      const tmpContext = tmpCanvas.getContext('2d');
+      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      this.lastViewList.push(tmpCanvas);
+
+      const lastViewListLength = this.lastViewList.length;
+      if (lastViewListLength > sequenceCount) {
+        this.lastViewList.splice(0, lastViewListLength - sequenceCount);
+        this.sequenceContext.drawImage(this.lastViewList[8], 0, 0, width, height, 0, 0, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[7], 0, 0, width, height, thresholdWidth, 0, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[6], 0, 0, width, height, thresholdWidth * 2, 0, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[5], 0, 0, width, height, 0, thresholdHeight, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[4], 0, 0, width, height, thresholdWidth, thresholdHeight, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[3], 0, 0, width, height, thresholdWidth * 2, thresholdHeight, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[2], 0, 0, width, height, 0, thresholdHeight * 2, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[1], 0, 0, width, height, thresholdWidth, thresholdHeight * 2, thresholdWidth, thresholdHeight);
+        this.sequenceContext.drawImage(this.lastViewList[0], 0, 0, width, height, thresholdWidth * 2, thresholdHeight * 2, thresholdWidth, thresholdHeight);
+      }
+    }, 1000 / 10);
+  }
+
   initMosaic() {
     const { element, width, height } = getAndInitCanvasSize('.mosaic');
     this.mosaicContext = element.getContext('2d');
@@ -96,7 +129,7 @@ class Main {
         width,
         height,
         context: tmpContext,
-        mosaicSizePx: 12
+        mosaicSizePx: 12,
       });
       this.mosaicContext.drawImage(tmpCanvas, 0, 0);
     }, 1000 / 10);

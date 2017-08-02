@@ -27,6 +27,16 @@ function createMosaic({ context, imageData, width, height, mosaicSizePx }) {
   }
 }
 
+function writeAndRecursive(context, video, timeoutMSec, width, height) {
+  context.drawImage(video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+  const nextIntervalMSec = Math.sin(((new Date().getSeconds() % 15 * 6)) * (Math.PI / 180)) * 500;
+  setTimeout(() => writeAndRecursive(context, video, nextIntervalMSec, width, height), timeoutMSec + 10);
+}
+
+function getRandom({ min, max }) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 class Main {
   constructor() {
     this.onDOMContentLoaded = this.onDOMContentLoaded.bind(this);
@@ -44,6 +54,10 @@ class Main {
     this.initGrayScale();
     this.initShock();
     this.initRGB();
+    this.initStopAndGo();
+    this.initSineCycle();
+    this.initGlitchOne();
+    this.initGlitchTwo();
   }
 
   init10Frames() {
@@ -227,6 +241,86 @@ class Main {
     }, 1000 / 10);
   }
 
+  initStopAndGo() {
+    const { element, width, height } = getAndInitCanvasSize('.stop-and-go');
+    this.stopAndGoContext = element.getContext('2d');
+    const canvases = [];
+    setInterval(() => {
+      const now = new Date();
+      if (now.getSeconds() % 3 === 0 && canvases.length > 0) {
+        const canvasesIndex = Math.floor(Math.random() * 5);
+        this.stopAndGoContext.drawImage(canvases[canvasesIndex], 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      } else {
+        const canvas = document.createElement('canvas');
+        canvas.width = sourceWidthPx;
+        canvas.height = sourceHeightPx;
+        const tmpContext = canvas.getContext('2d');
+        tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, sourceWidthPx, sourceHeightPx);
+        canvases.push(canvas);
+        if (canvases.length > 5) {
+          canvases.splice(0, canvases.length - 5);
+        }
+        this.stopAndGoContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height)
+      }
+    }, 1000 / 30);
+  }
+
+  initSineCycle() {
+    const { element, width, height } = getAndInitCanvasSize('.sine-cycle');
+    this.sineCycleContext = element.getContext('2d');
+    writeAndRecursive(this.sineCycleContext, this.video, 100, width, height);
+  }
+
+  initGlitchOne() {
+    const { element, width, height } = getAndInitCanvasSize('.glitch-one');
+    this.glitchOneContext = element.getContext('2d');
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = width;
+    tmpCanvas.height = height;
+    const tmpContext = tmpCanvas.getContext('2d');
+    setInterval(() => {
+      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      const imageData = tmpContext.getImageData(0, 0, width, height);
+      const { data } = imageData;
+      const randR = Math.floor(Math.random() * 5) * 2;
+      const randG = Math.floor(Math.random() * 5) * 2;
+      const randB = Math.floor(Math.random() * 5);
+      for (let i = 0, l = data.length; i < l; i += 4) {
+        data[i * 4] = data[(i + randR) * 4];
+        data[i * 4 + 1] = data[(i + randG) * 4 + 1];
+        data[i * 4 + 2] = data[(i + randB) * 4 + 2];
+      }
+
+      this.glitchOneContext.putImageData(imageData, 0, 0);
+    }, 1000 / 20);
+  }
+
+  initGlitchTwo() {
+    const { element, width, height } = getAndInitCanvasSize('.glitch-two');
+    this.glitchTwoContext = element.getContext('2d');
+    const verticalSlices = Math.round(sourceHeightPx / 20);
+    const verticalContextSlices = Math.round(height / 20);
+    const maxHorizOffset = 20;
+    setInterval(() => {
+      if (Math.random() < 0.7) {
+        this.glitchTwoContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      } else {
+        for (let i = 0; i < verticalSlices; i += 1) {
+          const horizOffset = getRandom({ max: -Math.abs(maxHorizOffset), min: maxHorizOffset });
+          this.glitchTwoContext.drawImage(this.video,
+            0,
+            i * verticalSlices,
+            sourceWidthPx,
+            i * verticalSlices + verticalSlices,
+            horizOffset,
+            i * verticalContextSlices,
+            width,
+            i * verticalContextSlices + verticalContextSlices
+          );
+        }
+      }
+    }, 1000 / 10);
+  }
   // initRandomYellowBox() {
   //   setInterval(() => {
   //     this.tenFramesContext.shadowBlur = 15;//  shadow Blur

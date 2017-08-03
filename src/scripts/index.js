@@ -1,5 +1,7 @@
 import 'babel-polyfill'; // アプリ内で1度だけ読み込む エントリーポイントのてっぺん推奨
 
+import sepiaArray from './_sepiaArray';
+
 const sourceWidthPx = 640;
 const sourceHeightPx = 360;
 
@@ -58,6 +60,9 @@ class Main {
     this.initSineCycle();
     this.initGlitchOne();
     this.initGlitchTwo();
+    this.initBitmap();
+    this.initSepia();
+    this.initCenterDup();
   }
 
   init10Frames() {
@@ -86,7 +91,7 @@ class Main {
     const centerWidth = width / 2;
     setInterval(() => {
       this.centerReverseContext.drawImage(this.video, 0, 0, sourceCenterWidth, sourceHeightPx, centerWidth, 0, centerWidth, height);
-      this.centerReverseContext.drawImage(this.video, sourceCenterWidth, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      this.centerReverseContext.drawImage(this.video, sourceCenterWidth, 0, sourceCenterWidth, sourceHeightPx, 0, 0, centerWidth, height);
     }, 1000 / 30);
   }
 
@@ -321,6 +326,79 @@ class Main {
       }
     }, 1000 / 10);
   }
+
+  initBitmap() {
+    const { element, width, height } = getAndInitCanvasSize('.bitmap');
+    this.bitmapContext = element.getContext('2d');
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = width;
+    tmpCanvas.height = height;
+    const tmpContext = tmpCanvas.getContext('2d');
+    setInterval(() => {
+      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      const imageData = tmpContext.getImageData(0, 0, width, height);
+      const { data } = imageData;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i] * 0.2126;
+        const g = data[i + 1] * 0.7152;
+        const b = data[i + 2] * 0.0722;
+        const v = (r + g + b >= 128) ? 255 : 0;
+        data[i] = v;
+        data[i + 1] = v;
+        data[i + 2] = v;
+      }
+      this.bitmapContext.putImageData(imageData, 0, 0);
+    }, 1000 / 10);
+  }
+
+  initSepia() {
+    const { element, width, height } = getAndInitCanvasSize('.sepia');
+    this.sepiaContext = element.getContext('2d');
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = width;
+    tmpCanvas.height = height;
+    const tmpContext = tmpCanvas.getContext('2d');
+    setInterval(() => {
+      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      const imageData = tmpContext.getImageData(0, 0, width, height);
+      const { data } = imageData;
+      let noise = 20;
+
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = sepiaArray.r[data[i]];
+        data[i + 1] = sepiaArray.g[data[i + 1]];
+        data[i + 2] = sepiaArray.b[data[i + 2]];
+
+        noise = Math.round(noise - (Math.random() * noise));
+        for (let j = 0; j < 3; j += 1) {
+          const iPN = noise + data[i + j];
+          imageData.data[i + j] = (iPN > 255) ? 255 : iPN;
+        }
+      }
+      this.sepiaContext.putImageData(imageData, 0, 0);
+    }, 1000 / 10);
+  }
+
+  initCenterDup() {
+    const { element, width, height } = getAndInitCanvasSize('.center-dup');
+    this.centerDupContext = element.getContext('2d');
+    const sourceCenterWidth = sourceWidthPx / 2;
+    const centerWidth = width / 2;
+    setInterval(() => {
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = sourceCenterWidth;
+      tmpCanvas.height = height;
+      const tmpContext = tmpCanvas.getContext('2d');
+      tmpContext.translate(sourceCenterWidth, 0); // ひっくり返すので、その分移動する
+      tmpContext.scale(-1, 1);
+      tmpContext.drawImage(this.video, 0, 0, sourceCenterWidth, sourceHeightPx, 0, 0, sourceCenterWidth, height);
+
+      this.centerDupContext.drawImage(this.video, 0, 0, sourceCenterWidth, sourceHeightPx, 0, 0, centerWidth, height);
+      this.centerDupContext.drawImage(tmpCanvas, 0, 0, sourceCenterWidth, height, centerWidth, 0, centerWidth, height);
+    }, 1000 / 30);
+  }
+
   // initRandomYellowBox() {
   //   setInterval(() => {
   //     this.tenFramesContext.shadowBlur = 15;//  shadow Blur

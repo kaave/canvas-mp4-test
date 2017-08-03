@@ -10,10 +10,22 @@ const conf = {
 <% include _head.ejs %>
 <% include ../modules/header/header.ejs %>
 
-<h2>注釈がないものは30フレーム(ただし元ソースがよくわからない)
-<span style="font-size: 0.6em; display: block;">動画はこれ <a href="http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000">http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000</a></span>
-</h2>
+<!--<h2>注釈がないものは30フレーム(ただし元ソースがよくわからない)-->
+<!--<span style="font-size: 0.6em; display: block;">動画はこれ <a href="http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000">http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000</a></span>-->
+<!--</h2>-->
 <main id="main" class="main" role="main">
+    <section class="video-section">
+        <h3>よくある真ん中でターン</h3>
+        <canvas class="center-dup"></canvas>
+    </section>
+    <section class="video-section">
+        <h3>セピア・・・というかトイカメラ</h3>
+        <canvas class="sepia"></canvas>
+    </section>
+    <section class="video-section">
+        <h3>二階調化</h3>
+        <canvas class="bitmap"></canvas>
+    </section>
     <section class="video-section">
         <h3>グリッジその2 10フレ</h3>
         <canvas class="glitch-two"></canvas>
@@ -68,9 +80,26 @@ const conf = {
     </section>
     <section class="video-section">
         <h3>original</h3>
-        <video src="./assets/test.mp4" playsinline muted autoplay loop></video>
+        <!--<video src="./assets/test.mp4" playsinline muted autoplay loop></video>-->
+        <video playsinline muted autoplay loop></video>
     </section>
 </main>
+<script type="text/javascript">
+  const localVideo = document.querySelector('video');
+  let localStream;
+
+  window.addEventListener('DOMContentLoaded', function startVideo() {
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false})
+      .then(function(stream) {
+        localStream = stream;
+        localVideo.src = window.URL.createObjectURL(localStream);
+      })
+      .catch(function (error) {
+        console.error('mediaDevice.getUserMedia() error:', error);
+        return;
+      });
+  })
+</script>
 
 <% include ../modules/footer/footer.ejs %>
 <% include _foot.ejs %>

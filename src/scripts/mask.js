@@ -57,12 +57,10 @@ class Main {
   }
 
   onDownloadButtonClick() {
-    if (this.canvasElement) {
-      const anchorElement = document.createElement('a');
-      anchorElement.setAttribute('href', this.canvasElement.toDataURL('image/jpeg'));
-      anchorElement.setAttribute('download', 'capture.jpg');
-      anchorElement.click();
-    }
+    const anchorElement = document.createElement('a');
+    anchorElement.setAttribute('href', this.canvasElement.toDataURL('image/jpeg'));
+    anchorElement.setAttribute('download', 'capture.jpg');
+    anchorElement.click();
   }
 
   initVideoElement() {
@@ -81,10 +79,11 @@ class Main {
   }
 
   initCanvasElement() {
-    this.canvasElement = document.querySelector('canvas');
-    if (!this.canvasElement) {
+    const canvasElement = document.querySelector('canvas');
+    if (!canvasElement) {
       throw new Error('Not found canvas element');
     }
+    this.canvasElement = canvasElement;
 
     const { width, height } = this.canvasElement.getBoundingClientRect();
     this.canvasElement.setAttribute('width', width.toString());

@@ -163,7 +163,7 @@ export function sepia({ widthPx, heightPx, sourceElement }: Props): HTMLCanvasEl
   return tmpCanvases.sepia;
 }
 
-export function glitchLine({ widthPx, heightPx, sourceElement }: GlitchSliceProps): HTMLCanvasElement {
+export function glitchLine({ widthPx, heightPx, sourceElement }: Props): HTMLCanvasElement {
   tmpCanvases.sepia.width = widthPx;
   tmpCanvases.sepia.height = heightPx;
   const tmpContext = tmpCanvases.sepia.getContext('2d');

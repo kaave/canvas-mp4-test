@@ -6,7 +6,6 @@ import * as CanvasFilters from './modules/CanvasFilters';
 
 class Main {
   onDOMContentLoaded: () => void;
-  onChangeFrameRate: (Event) => void;
   videoElement: HTMLVideoElement;
   canvasElement: HTMLCanvasElement;
   canvasContext: CanvasRenderingContext2D;
@@ -57,6 +56,15 @@ class Main {
     }
   }
 
+  onDownloadButtonClick() {
+    if (this.canvasElement) {
+      const anchorElement = document.createElement('a');
+      anchorElement.setAttribute('href', this.canvasElement.toDataURL('image/jpeg'));
+      anchorElement.setAttribute('download', 'capture.jpg');
+      anchorElement.click();
+    }
+  }
+
   initVideoElement() {
     const videoElement = document.querySelector('video');
     if (!videoElement) {
@@ -73,18 +81,18 @@ class Main {
   }
 
   initCanvasElement() {
-    const canvasElement = document.querySelector('canvas');
-    if (!canvasElement) {
+    this.canvasElement = document.querySelector('canvas');
+    if (!this.canvasElement) {
       throw new Error('Not found canvas element');
     }
 
-    const { width, height } = canvasElement.getBoundingClientRect();
-    canvasElement.setAttribute('width', width.toString());
-    canvasElement.setAttribute('height', height.toString());
+    const { width, height } = this.canvasElement.getBoundingClientRect();
+    this.canvasElement.setAttribute('width', width.toString());
+    this.canvasElement.setAttribute('height', height.toString());
     this.widthPx = width;
     this.heightPx = height;
 
-    const context = canvasElement.getContext('2d');
+    const context = this.canvasElement.getContext('2d');
     if (!context) {
       throw new Error('Cannot get CanvasRenderingContext2d');
     }
@@ -96,15 +104,19 @@ class Main {
   initFormElements() {
     // fps
     const fpsElement = document.querySelector('.setting__fps');
-    if (!fpsElement) {
-      return;
+    if (fpsElement) {
+      fpsElement.addEventListener('change', this.onChangeFrameRate.bind(this));
     }
-
-    fpsElement.addEventListener('change', this.onChangeFrameRate.bind(this));
 
     // setting forms
     const formElements = Array.from(document.querySelectorAll('.setting__form input[type="checkbox"]'));
     formElements.forEach(element => element.addEventListener('change', this.onChangeSettingForm.bind(this)));
+
+    // download button
+    const downloadButtonElement = document.querySelector('.button--download');
+    if (downloadButtonElement) {
+      downloadButtonElement.addEventListener('click', this.onDownloadButtonClick.bind(this));
+    }
   }
 
   setPaintInterval(fps: number) {

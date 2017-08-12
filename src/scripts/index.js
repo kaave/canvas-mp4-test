@@ -1,9 +1,9 @@
 import 'babel-polyfill'; // アプリ内で1度だけ読み込む エントリーポイントのてっぺん推奨
 
-import sepiaArray from './_sepiaArray';
+import * as CanvasFilters from './modules/CanvasFilters';
 
 const sourceWidthPx = 640;
-const sourceHeightPx = 360;
+const sourceHeightPx = 480;
 
 function getAndInitCanvasSize(canvasElementSelector) {
   const element = document.querySelector(canvasElementSelector);
@@ -13,30 +13,10 @@ function getAndInitCanvasSize(canvasElementSelector) {
   return { element, width, height };
 }
 
-// 参考: https://www.ipentec.com/document/document.aspx?page=html-canvas-create-mosic-image
-function createMosaic({ context, imageData, width, height, mosaicSizePx }) {
-  for (let y = 0; y < height; y += mosaicSizePx) {
-    for (let x = 0; x < width; x += mosaicSizePx) {
-      const dataBaseIndex = ((y * width) + x) * 4;
-      // imageData.dataには1px毎のデータがrgba順の10進数で入っている
-      const r = imageData.data[dataBaseIndex];
-      const g = imageData.data[dataBaseIndex + 1];
-      const b = imageData.data[dataBaseIndex + 2];
-
-      context.fillStyle = `rgb(${r},${g},${b})`;
-      context.fillRect(x, y, x + mosaicSizePx, y + mosaicSizePx);
-    }
-  }
-}
-
 function writeAndRecursive(context, video, timeoutMSec, width, height) {
   context.drawImage(video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
   const nextIntervalMSec = Math.sin(((new Date().getSeconds() % 15 * 6)) * (Math.PI / 180)) * 500;
   setTimeout(() => writeAndRecursive(context, video, nextIntervalMSec, width, height), timeoutMSec + 10);
-}
-
-function getRandom({ min, max }) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 class Main {
@@ -47,22 +27,22 @@ class Main {
   onDOMContentLoaded() {
     this.video = document.querySelector('video');
 
-    this.init10Frames();
-    this.initQuartet();
-    this.initCenterReverse();
-    this.initMirror();
-    this.initSequence();
     this.initMosaic();
     this.initGrayScale();
     this.initShock();
-    this.initRGB();
-    this.initStopAndGo();
-    this.initSineCycle();
-    this.initGlitchOne();
-    this.initGlitchTwo();
     this.initBitmap();
     this.initSepia();
+    this.initGlitchLine();
+    this.initGlitchVertical();
+    this.initGlitchHorizontal();
     this.initCenterDup();
+    this.initMirror();
+    // this.init10Frames();
+    // this.initQuartet();
+    // this.initCenterReverse();
+    // this.initSequence();
+    // this.initStopAndGo();
+    // this.initSineCycle();
   }
 
   init10Frames() {
@@ -98,11 +78,11 @@ class Main {
   initMirror() {
     const { element, width, height } = getAndInitCanvasSize('.mirror');
     this.mirrorContext = element.getContext('2d');
-    this.mirrorContext.translate(width, 0); // ひっくり返すので、その分移動する
-    this.mirrorContext.scale(-1, 1);
-    setInterval(() => {
-      this.mirrorContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
-    }, 1000 / 30);
+    setInterval(() => this.mirrorContext.drawImage(CanvasFilters.mirror({
+      widthPx: width,
+      heightPx: height,
+      sourceElement: this.video,
+    }), 0, 0), 1000 / 20);
   }
 
   initSequence() {
@@ -139,111 +119,42 @@ class Main {
   initMosaic() {
     const { element, width, height } = getAndInitCanvasSize('.mosaic');
     this.mosaicContext = element.getContext('2d');
-    const tmpCanvas = document.createElement('canvas');
-    tmpCanvas.width = width;
-    tmpCanvas.height = height;
-    const tmpContext = tmpCanvas.getContext('2d');
+
     setInterval(() => {
-      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
-      const imageData = tmpContext.getImageData(0, 0, width, height);
-      createMosaic({
-        imageData,
-        width,
-        height,
-        context: tmpContext,
-        mosaicSizePx: 12,
+      // const mosaicSizeThreshold = Math.ceil(new Date().getMilliseconds() / 50) + 1;
+      // const mosaicPx = mosaicSizeThreshold > 20 ? 20 : mosaicSizeThreshold;
+      const mosaicPx = 12;
+      const mosaicedCanvas = CanvasFilters.mosaic({
+        mosaicPx,
+        widthPx: width,
+        heightPx: height,
+        sourceElement: this.video,
       });
-      this.mosaicContext.drawImage(tmpCanvas, 0, 0);
+
+      this.mosaicContext.drawImage(mosaicedCanvas, 0, 0);
     }, 1000 / 10);
   }
 
   initGrayScale() {
     const { element, width, height } = getAndInitCanvasSize('.gray');
     this.grayContext = element.getContext('2d');
-    const tmpCanvas = document.createElement('canvas');
-    tmpCanvas.width = width;
-    tmpCanvas.height = height;
-    const tmpContext = tmpCanvas.getContext('2d');
-    setInterval(() => {
-      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
-      const imageData = tmpContext.getImageData(0, 0, width, height);
-      const { data } = imageData;
 
-      for (let i = 0; i < data.length; i += 4) {
-        const brightness = (0.34 * data[i]) + (0.5 * data[i + 1]) + (0.16 * data[i + 2]);
-        data[i] = brightness;
-        data[i + 1] = brightness;
-        data[i + 2] = brightness;
-      }
-      this.grayContext.putImageData(imageData, 0, 0);
-    }, 1000 / 10);
+    setInterval(() => this.grayContext.drawImage(CanvasFilters.grayScale({
+      widthPx: width,
+      heightPx: height,
+      sourceElement: this.video,
+    }), 0, 0), 1000 / 10);
   }
 
   initShock() {
     const { element, width, height } = getAndInitCanvasSize('.shock');
     this.shockContext = element.getContext('2d');
-    const tmpCanvas = document.createElement('canvas');
-    tmpCanvas.width = width;
-    tmpCanvas.height = height;
-    const tmpContext = tmpCanvas.getContext('2d');
-    setInterval(() => {
-      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
-      const imageData = tmpContext.getImageData(0, 0, width, height);
-      const { data } = imageData;
 
-      for (let i = 0; i < data.length; i += 4) {
-        data[i] = 255 - data[i];
-        data[i + 1] = 255 - data[i + 1];
-        data[i + 2] = 255 - data[i + 2];
-      }
-      this.shockContext.putImageData(imageData, 0, 0);
-    }, 1000 / 10);
-  }
-
-  initRGB() {
-    const { element, width, height } = getAndInitCanvasSize('.rgb');
-    this.rgbContext = element.getContext('2d');
-    const sourceCenterWidthPx = sourceWidthPx / 2;
-    const sourceCenterHeightPx = sourceHeightPx / 2;
-    const centerWidth = width / 2;
-    const centerHeight = height / 2;
-
-    setInterval(() => {
-      const canvases = [];
-      for (let i = 0; i < 4; i += 1) {
-        const canvas = document.createElement('canvas');
-        canvas.width = centerWidth;
-        canvas.height = centerHeight;
-        const context = canvas.getContext('2d');
-        canvases.push({ canvas, context });
-      }
-
-      canvases[0].context.drawImage(this.video, 0, 0, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
-      canvases[1].context.drawImage(this.video, sourceCenterWidthPx, 0, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
-      canvases[2].context.drawImage(this.video, 0, sourceCenterHeightPx, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
-      canvases[3].context.drawImage(this.video, sourceCenterWidthPx, sourceCenterHeightPx, sourceCenterWidthPx, sourceCenterHeightPx, 0, 0, centerWidth, centerHeight);
-
-      canvases[0].imageData = canvases[0].context.getImageData(0, 0, centerWidth, centerHeight);
-      canvases[1].imageData = canvases[1].context.getImageData(0, 0, centerWidth, centerHeight);
-      canvases[2].imageData = canvases[2].context.getImageData(0, 0, centerWidth, centerHeight);
-
-      const data0 = canvases[0].imageData.data;
-      for (let i = 0; i < data0.length; i += 4) {
-        data0[i] = 0;
-      }
-      this.rgbContext.putImageData(canvases[0].imageData, 0, 0);
-      const data1 = canvases[1].imageData.data;
-      for (let i = 0; i < data1.length; i += 4) {
-        data1[i + 1] = 0;
-      }
-      this.rgbContext.putImageData(canvases[1].imageData, centerWidth, 0);
-      const data2 = canvases[2].imageData.data;
-      for (let i = 0; i < data2.length; i += 4) {
-        data2[i + 2] = 0;
-      }
-      this.rgbContext.putImageData(canvases[2].imageData, 0, centerHeight);
-      this.rgbContext.drawImage(canvases[3].canvas, centerWidth, centerHeight, centerWidth, centerHeight);
-    }, 1000 / 10);
+    setInterval(() => this.shockContext.drawImage(CanvasFilters.reverseColor({
+      widthPx: width,
+      heightPx: height,
+      sourceElement: this.video,
+    }), 0, 0), 1000 / 10);
   }
 
   initStopAndGo() {
@@ -276,53 +187,49 @@ class Main {
     writeAndRecursive(this.sineCycleContext, this.video, 100, width, height);
   }
 
-  initGlitchOne() {
-    const { element, width, height } = getAndInitCanvasSize('.glitch-one');
-    this.glitchOneContext = element.getContext('2d');
-    const tmpCanvas = document.createElement('canvas');
-    tmpCanvas.width = width;
-    tmpCanvas.height = height;
-    const tmpContext = tmpCanvas.getContext('2d');
-    setInterval(() => {
-      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
-      const imageData = tmpContext.getImageData(0, 0, width, height);
-      const { data } = imageData;
-      const randR = Math.floor(Math.random() * 5) * 2;
-      const randG = Math.floor(Math.random() * 5) * 2;
-      const randB = Math.floor(Math.random() * 5);
-      for (let i = 0, l = data.length; i < l; i += 4) {
-        data[i * 4] = data[(i + randR) * 4];
-        data[i * 4 + 1] = data[(i + randG) * 4 + 1];
-        data[i * 4 + 2] = data[(i + randB) * 4 + 2];
-      }
+  initGlitchLine() {
+    const { element, width, height } = getAndInitCanvasSize('.glitch-line');
+    this.glitchLineContext = element.getContext('2d');
 
-      this.glitchOneContext.putImageData(imageData, 0, 0);
-    }, 1000 / 20);
+    setInterval(() => this.glitchLineContext.drawImage(CanvasFilters.glitchLine({
+      widthPx: width,
+      heightPx: height,
+      sourceElement: this.video,
+    }), 0, 0), 1000 / 10);
   }
 
-  initGlitchTwo() {
-    const { element, width, height } = getAndInitCanvasSize('.glitch-two');
-    this.glitchTwoContext = element.getContext('2d');
-    const verticalSlices = Math.round(sourceHeightPx / 20);
-    const verticalContextSlices = Math.round(height / 20);
-    const maxHorizOffset = 20;
+  initGlitchVertical() {
+    const { element, width, height } = getAndInitCanvasSize('.glitch-vertical');
+    this.glitchVerticalContext = element.getContext('2d');
+
     setInterval(() => {
       if (Math.random() < 0.7) {
-        this.glitchTwoContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+        this.glitchVerticalContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
       } else {
-        for (let i = 0; i < verticalSlices; i += 1) {
-          const horizOffset = getRandom({ max: -Math.abs(maxHorizOffset), min: maxHorizOffset });
-          this.glitchTwoContext.drawImage(this.video,
-            0,
-            i * verticalSlices,
-            sourceWidthPx,
-            i * verticalSlices + verticalSlices,
-            horizOffset,
-            i * verticalContextSlices,
-            width,
-            i * verticalContextSlices + verticalContextSlices
-          );
-        }
+        this.glitchVerticalContext.drawImage(CanvasFilters.glitchVertical({
+          widthPx: width,
+          heightPx: height,
+          sourceElement: this.video,
+          sliceSizePx: Math.floor(Math.random() * 50) + 1,
+        }), 0, 0);
+      }
+    }, 1000 / 10);
+  }
+
+  initGlitchHorizontal() {
+    const { element, width, height } = getAndInitCanvasSize('.glitch-horizontal');
+    this.glitchHorizontalContext = element.getContext('2d');
+
+    setInterval(() => {
+      if (Math.random() < 0.7) {
+        this.glitchHorizontalContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
+      } else {
+        this.glitchHorizontalContext.drawImage(CanvasFilters.glitchHorizontal({
+          widthPx: width,
+          heightPx: height,
+          sourceElement: this.video,
+          sliceSizePx: Math.floor(Math.random() * 50) + 1,
+        }), 0, 0);
       }
     }, 1000 / 10);
   }
@@ -330,73 +237,35 @@ class Main {
   initBitmap() {
     const { element, width, height } = getAndInitCanvasSize('.bitmap');
     this.bitmapContext = element.getContext('2d');
-    const tmpCanvas = document.createElement('canvas');
-    tmpCanvas.width = width;
-    tmpCanvas.height = height;
-    const tmpContext = tmpCanvas.getContext('2d');
-    setInterval(() => {
-      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
-      const imageData = tmpContext.getImageData(0, 0, width, height);
-      const { data } = imageData;
 
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i] * 0.2126;
-        const g = data[i + 1] * 0.7152;
-        const b = data[i + 2] * 0.0722;
-        const v = (r + g + b >= 128) ? 255 : 0;
-        data[i] = v;
-        data[i + 1] = v;
-        data[i + 2] = v;
-      }
-      this.bitmapContext.putImageData(imageData, 0, 0);
-    }, 1000 / 10);
+    setInterval(() => this.bitmapContext.drawImage(CanvasFilters.bitmap({
+      widthPx: width,
+      heightPx: height,
+      sourceElement: this.video,
+    }), 0, 0), 1000 / 10);
   }
 
   initSepia() {
     const { element, width, height } = getAndInitCanvasSize('.sepia');
     this.sepiaContext = element.getContext('2d');
-    const tmpCanvas = document.createElement('canvas');
-    tmpCanvas.width = width;
-    tmpCanvas.height = height;
-    const tmpContext = tmpCanvas.getContext('2d');
-    setInterval(() => {
-      tmpContext.drawImage(this.video, 0, 0, sourceWidthPx, sourceHeightPx, 0, 0, width, height);
-      const imageData = tmpContext.getImageData(0, 0, width, height);
-      const { data } = imageData;
-      let noise = 20;
 
-      for (let i = 0; i < data.length; i += 4) {
-        data[i] = sepiaArray.r[data[i]];
-        data[i + 1] = sepiaArray.g[data[i + 1]];
-        data[i + 2] = sepiaArray.b[data[i + 2]];
-
-        noise = Math.round(noise - (Math.random() * noise));
-        for (let j = 0; j < 3; j += 1) {
-          const iPN = noise + data[i + j];
-          imageData.data[i + j] = (iPN > 255) ? 255 : iPN;
-        }
-      }
-      this.sepiaContext.putImageData(imageData, 0, 0);
-    }, 1000 / 10);
+    setInterval(() => this.sepiaContext.drawImage(CanvasFilters.sepia({
+      widthPx: width,
+      heightPx: height,
+      sourceElement: this.video,
+    }), 0, 0), 1000 / 10);
   }
 
   initCenterDup() {
     const { element, width, height } = getAndInitCanvasSize('.center-dup');
     this.centerDupContext = element.getContext('2d');
-    const sourceCenterWidth = sourceWidthPx / 2;
-    const centerWidth = width / 2;
-    setInterval(() => {
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = sourceCenterWidth;
-      tmpCanvas.height = height;
-      const tmpContext = tmpCanvas.getContext('2d');
-      tmpContext.translate(sourceCenterWidth, 0); // ひっくり返すので、その分移動する
-      tmpContext.scale(-1, 1);
-      tmpContext.drawImage(this.video, 0, 0, sourceCenterWidth, sourceHeightPx, 0, 0, sourceCenterWidth, height);
 
-      this.centerDupContext.drawImage(this.video, 0, 0, sourceCenterWidth, sourceHeightPx, 0, 0, centerWidth, height);
-      this.centerDupContext.drawImage(tmpCanvas, 0, 0, sourceCenterWidth, height, centerWidth, 0, centerWidth, height);
-    }, 1000 / 30);
+    setInterval(() => this.centerDupContext.drawImage(CanvasFilters.centerDuplicate({
+      widthPx: width,
+      heightPx: height,
+      sourceElement: this.video,
+      isHorizontal: true,
+    }), 0, 0), 1000 / 10);
   }
 
   // initRandomYellowBox() {

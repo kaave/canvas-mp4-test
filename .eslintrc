@@ -8,6 +8,17 @@
       "argsIgnorePattern": "^_"
     }],
     // thisを参照しないクラスメソッドはstaticでなければいけない 無効化 オブジェクト指向ってそういうもんではないと思う
-    "class-methods-use-this": "off"
+    "class-methods-use-this": "off",
+    // ややこしくなる演算子を括弧でくくらず使うの禁止 エラー ただし優先順位に変化をもたらさない場合はOK +と-とか
+    "no-mixed-operators": ["error", {
+      "groups": [
+        ["+", "-", "*", "/", "%", "**"],
+        ["&", "|", "^", "~", "<<", ">>", ">>>"],
+        ["==", "!=", "===", "!==", ">", ">=", "<", "<="],
+        ["&&", "||"],
+        ["in", "instanceof"]
+      ],
+      "allowSamePrecedence": true
+    }]
   }
 }

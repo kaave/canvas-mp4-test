@@ -44,12 +44,16 @@
         <canvas class="bitmap"></canvas>
     </section>
     <section class="video-section">
-        <h3>グリッジその2 10フレ</h3>
-        <canvas class="glitch-two"></canvas>
+        <h3>グリッジ横 10フレ</h3>
+        <canvas class="glitch-horizontal"></canvas>
     </section>
     <section class="video-section">
-        <h3>グリッジその1 20フレ</h3>
-        <canvas class="glitch-one"></canvas>
+        <h3>グリッジ縦 10フレ</h3>
+        <canvas class="glitch-vertical"></canvas>
+    </section>
+    <section class="video-section">
+        <h3>グリッジ線 20フレ</h3>
+        <canvas class="glitch-line"></canvas>
     </section>
     <section class="video-section">
         <h3>再生速度にムラを出す(15秒間隔)</h3>
@@ -106,7 +110,7 @@
   let localStream;
 
   window.addEventListener('DOMContentLoaded', function startVideo() {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false})
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       .then(function(stream) {
         localStream = stream;
         localVideo.src = window.URL.createObjectURL(localStream);

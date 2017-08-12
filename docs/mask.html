@@ -1,0 +1,179 @@
+
+
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+
+    <title>mask</title>
+    <meta name="title" content="mask">
+    <meta name="description" content="mask samples">
+
+    <meta property="og:title" content="mask">
+    <meta property="og:description" content="mask samples">
+
+
+
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+
+    <link rel="stylesheet" href="./css/mask.css">
+
+
+</head>
+<body>
+
+<header id="header" class="header"></header>
+
+
+<!--<h2>注釈がないものは30フレーム(ただし元ソースがよくわからない)-->
+<!--<span style="font-size: 0.6em; display: block;">動画はこれ <a href="http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000">http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000</a></span>-->
+<!--</h2>-->
+<main id="main" class="main" role="main">
+    <section class="video-section">
+        <h3>original</h3>
+        <!--<video src="./assets/test.mp4" playsinline muted autoplay loop></video>-->
+        <video playsinline muted autoplay loop></video>
+    </section>
+    <section class="video-section">
+        <h3>Masked</h3>
+        <canvas class="masked"></canvas>
+    </section>
+    <section class="buttons">
+      <button class="button--download">
+        Capture &amp; Download(jpg) !!!
+      </button>
+    </section>
+    <section class="setting">
+        <h3 class="setting__header">settings</h3>
+        <select class="setting__fps">
+            
+            <option value="5">
+                5 fps
+            </option>
+            
+            <option value="10">
+                10 fps
+            </option>
+            
+            <option value="20">
+                20 fps
+            </option>
+            
+            <option value="24">
+                24 fps
+            </option>
+            
+            <option value="30">
+                30 fps
+            </option>
+            
+        </select>
+        <ul class="setting__list">
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="mosaic">
+                        モザイク
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="grayScale">
+                        グレースケール
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="shock">
+                        反転
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="bitmap">
+                        二階調化
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="sepia">
+                        セピア
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="glitchLine">
+                        グリッチ: 色ズレ
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="glitchVertical">
+                        グリッチ: 縦ズレ
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="glitchHorizontal">
+                        グリッチ: 横ズレ
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="centerDuplicateVertical">
+                        真ん中に横鏡
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="centerDuplicateHorizontal">
+                        真ん中に縦鏡
+                    
+                </label>
+            </li>
+            
+            <li class="setting__form">
+                <label style="user-select: none">
+                    <input type="checkbox" value="mirror">
+                        全面に鏡
+                    
+                </label>
+            </li>
+            
+        </ul>
+    </section>
+</main>
+
+<footer id="footer" class="footer">
+</footer>
+
+
+
+<script src="./js/vendor.bundle.js"></script>
+
+<script src="./js/mask.js"></script>
+
+</body>
+</html>
+
+

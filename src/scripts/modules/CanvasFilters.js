@@ -208,9 +208,9 @@ export function glitchHorizontal({ widthPx, heightPx, sourceElement, sliceSizePx
 }
 
 export function glitchVertical({ widthPx, heightPx, sourceElement, sliceSizePx }: GlitchSliceProps): HTMLCanvasElement {
-  tmpCanvases.glitchHorizontal.width = widthPx;
-  tmpCanvases.glitchHorizontal.height = heightPx;
-  const tmpContext = tmpCanvases.glitchHorizontal.getContext('2d');
+  tmpCanvases.glitchVertical.width = widthPx;
+  tmpCanvases.glitchVertical.height = heightPx;
+  const tmpContext = tmpCanvases.glitchVertical.getContext('2d');
   const horizontalSlices = Math.round(widthPx / sliceSizePx);
 
   for (let i = 0; i < horizontalSlices; i += 1) {
@@ -227,7 +227,7 @@ export function glitchVertical({ widthPx, heightPx, sourceElement, sliceSizePx }
     );
   }
 
-  return tmpCanvases.glitchHorizontal;
+  return tmpCanvases.glitchVertical;
 }
 
 function centerDuplicateHorizontal({ widthPx, heightPx, sourceElement }: Props): HTMLCanvasElement {

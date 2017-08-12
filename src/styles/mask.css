@@ -1,0 +1,71 @@
+@import "_global.css";
+@import "../modules/header/header.css";
+@import "../modules/footer/footer.css";
+
+h2 {
+    width: 100%;
+    text-align: center;
+    font-size: 2.6rem;
+    color: #0f0;
+}
+
+.main {
+    display: flex;
+    width: 100vw;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.video-section {
+    display: inline-flex;
+    flex-direction: column;
+    border: solid 3px #0f0;
+    padding: 1%;
+    margin: 1%;
+
+    h3 {
+        font-size: 2rem;
+        text-align: center;
+        background: rgb(255, 255, 255);
+        height: 40px;
+        line-height: 40px;
+    }
+
+    video,
+    canvas {
+        width: 640px;
+        height: 480px;
+    }
+}
+
+.setting {
+    display: inline-flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 30px 144px;
+    padding: 1%;
+    border: solid 3px #0f0;
+
+    &__header {
+        font-size: 2rem;
+        text-align: center;
+        background: rgb(0, 0, 0);
+        height: 40px;
+        line-height: 40px;
+        color: #0f0;
+        margin-bottom: 1%;
+    }
+
+    &__fps {
+        font-size: 20px;
+        width: 100px;
+        margin-bottom: 20px;
+        padding: 5px 10px;
+    }
+
+    &__form {
+        display: inline-block;
+        color: #0f0;
+        margin: 0 0.5em 1em 0;
+    }
+}

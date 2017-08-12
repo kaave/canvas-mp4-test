@@ -1,0 +1,63 @@
+<%
+const conf = {
+    title : 'mask',
+    description : 'mask samples',
+    style: 'mask.css',
+    script: 'mask.js'
+};
+%>
+
+<% include _head.ejs %>
+<% include ../modules/header/header.ejs %>
+
+<!--<h2>注釈がないものは30フレーム(ただし元ソースがよくわからない)-->
+<!--<span style="font-size: 0.6em; display: block;">動画はこれ <a href="http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000">http://www.nhk.or.jp/archives/creative/material/view.html?m=D0002080108_00000</a></span>-->
+<!--</h2>-->
+<main id="main" class="main" role="main">
+    <section class="video-section">
+        <h3>original</h3>
+        <!--<video src="./assets/test.mp4" playsinline muted autoplay loop></video>-->
+        <video playsinline muted autoplay loop></video>
+    </section>
+    <section class="video-section">
+        <h3>Masked</h3>
+        <canvas class="masked"></canvas>
+    </section>
+    <section class="setting">
+        <h3 class="setting__header">settings</h3>
+        <select class="setting__fps">
+            <% [5, 10, 20, 24, 30].forEach(fps => { %>
+            <option value="<%= fps %>">
+                <%= fps %> fps
+            </option>
+            <% }) %>
+        </select>
+        <ul class="setting__list">
+            <% [
+                { key: 'mosaic', desc: 'モザイク' },
+                { key: 'grayScale', desc: 'グレースケール' },
+                { key: 'shock', desc: '反転' },
+                { key: 'bitmap', desc: '二階調化' },
+                { key: 'sepia', desc: 'セピア' },
+                { key: 'glitchLine', desc: 'グリッチ: 色ズレ' },
+                { key: 'glitchVertical', desc: 'グリッチ: 縦ズレ' },
+                { key: 'glitchHorizontal', desc: 'グリッチ: 横ズレ' },
+                { key: 'centerDuplicateVertical', desc: '真ん中に横鏡' },
+                { key: 'centerDuplicateHorizontal', desc: '真ん中に縦鏡' },
+                { key: 'mirror', desc: '全面に鏡' }
+            ].forEach(({ key, desc }) => { %>
+            <li class="setting__form">
+                <label style="user-select: none;">
+                    <input type="checkbox" value="<%= key %>">
+                        <%= desc %>
+                    </input>
+                </label>
+            </li>
+            <% }) %>
+        </ul>
+    </section>
+</main>
+
+<% include ../modules/footer/footer.ejs %>
+<% include _foot.ejs %>
+
